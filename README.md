@@ -19,3 +19,12 @@
 - 尚未在 XQ 實際編譯；欄位名稱（如「外資買賣超」「融資維持率」）若與你的 XQ 版本不同，請依錯誤訊息調整。
 - 衍生品欄位抓不到時該項以 50 分（中性）計入。
 - 僅供研究參考，不構成投資建議。
+
+## Python 版 + Telegram 推播
+- `bottom_index.py`：同一套 14 項訊號（融資維持率無公開資料，預設停用），資料取自證交所與期交所。
+- GitHub Actions 每個交易日台灣時間 21:40 執行（融資融券約 21:30 公布），**分數 ≥ 門檻才推播**。
+- 需要在 repo 的 Settings → Secrets and variables → Actions 新增：
+  - Secrets：`TELEGRAM_BOT_TOKEN`、`TELEGRAM_CHAT_ID`（跟 cup-handle-stock-strategy 用同一組即可）
+  - Variables（可選）：`THRESHOLD`，預設 70
+- 手動執行（Actions → Run workflow）預設會強制推播一次，用來測試 Telegram。
+- 歷史資料存在 `data/history.csv`，分數存在 `data/scores.csv`，每次執行自動補資料並提交。

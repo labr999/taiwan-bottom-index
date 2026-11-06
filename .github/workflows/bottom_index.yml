@@ -1,0 +1,38 @@
+name: Taiwan Bottom Index
+
+on:
+  schedule:
+    - cron: "40 13 * * 1-5"   # 台灣時間 21:40（融資融券約 21:30 公布）
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "不論分數一律推播（測試 Telegram）"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Compute and push
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          THRESHOLD: ${{ vars.THRESHOLD || '70' }}
+        run: python bottom_index.py ${{ (github.event_name == 'workflow_dispatch' && inputs.force) && '--force' || '' }}
+      - name: Save history
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898729+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git diff --cached --quiet || (git commit -m "data: $(date -u +%F)" && git push)
